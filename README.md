@@ -1,6 +1,6 @@
 # 📅 Daily-Attendance-plugin
 
-[![Gitee](https://gitee.com/qinyingxbot/Daily-Attendance-plugin/badge/star.svg?theme=dark)](https://gitee.com/qinyingxbot/Daily-Attendance-plugin) ![version](https://img.shields.io/badge/version-1.1.0-blue) ![license](https://img.shields.io/badge/license-MIT-green)
+[![Gitee](https://gitee.com/qingyingxbot/Daily-Attendance-plugin/badge/star.svg?theme=dark)](https://gitee.com/qingyingxbot/Daily-Attendance-plugin) ![version](https://img.shields.io/badge/version-1.1.0-blue) ![license](https://img.shields.io/badge/license-MIT-green)
 
 ---
 
@@ -33,7 +33,7 @@ Daily-Attendance-plugin 是一个为 Yunzai-Bot 开发的每日运势插件，�
 
 ```bash
 # 使用 Git 安装
-git clone https://gitee.com/qinyingxbot/Daily-Attendance-plugin.git ./plugins/Daily-Attendance-plugin/
+git clone https://gitee.com/qingyingxbot/Daily-Attendance-plugin.git ./plugins/Daily-Attendance-plugin/
 # 安装依赖
 pnpm install
 ```
@@ -165,7 +165,7 @@ Daily-Attendance-plugin/
 ---
 
 ## 💬 问题反馈
-如有任何问题，欢迎提交 [Issue](https://gitee.com/qinyingxbot/Daily-Attendance-plugin/issues) 反馈。
+如有任何问题，欢迎提交 [Issue](https://gitee.com/qingyingxbot/Daily-Attendance-plugin/issues) 反馈。
 
 ## 📄 许可证
 本项目采用 **MIT 许可证**
