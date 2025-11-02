@@ -1,0 +1,21 @@
+{
+  "name": "daily-attendance-plugin",
+  "version": "1.1.0",
+  "description": "TRSS-Yunzai 每日运势插件 - 提供运势生成、等级系统、随机一言等功能",
+  "main": "index.js",
+  "type": "module",
+  "keywords": [
+    "yunzai",
+    "trss",
+    "fortune",
+    "daily",
+    "sign-in",
+    "attendance",
+    "level-system"
+  ],
+  "author": "TRSS-Yunzai",
+  "license": "MIT",
+  "dependencies": {
+    "moment": "^2.30.1"
+  }
+} 

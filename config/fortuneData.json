@@ -1,0 +1,14 @@
+[
+  { "range": [0, 4], "description": "喝凉水都塞牙的程度" },
+  { "range": [5, 14], "description": "吃泡面没有调味包的程度" },
+  { "range": [15, 24], "description": "出门就赶上下雨的程度" },
+  { "range": [25, 34], "description": "抽卡保底必歪的程度" },
+  { "range": [35, 49], "description": "普通人的平凡日常" },
+  { "range": [50, 59], "description": "偶尔能捡到硬币的程度" },
+  { "range": [60, 69], "description": "想出门时刚好天晴的程度" },
+  { "range": [70, 79], "description": "抽卡总能小保底不歪的程度" },
+  { "range": [80, 89], "description": "外卖总比预计早到的程度" },
+  { "range": [90, 94], "description": "路过都能触发奇遇的程度" },
+  { "range": [95, 99], "description": "心想事成的程度" },
+  { "range": [100, 100], "description": "天选之人" }
+]

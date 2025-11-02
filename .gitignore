@@ -1,0 +1,4 @@
+# 数据文件
+data/
+node_modules/
+config/hitokotoBackup.json
