@@ -45,7 +45,7 @@ export class Fortune extends plugin {
       event: 'message',
       priority: 1000,
       rule: [
-        { reg: '^今日运势|jrys$', fnc: 'getFortune' },
+        { reg: '^今日运势|jrys|孑然一身$', fnc: 'getFortune' },
         { reg: '^运势统计|ystj$', fnc: 'getStats' },
         { reg: '^运势帮助|ysbz$', fnc: 'getHelp' },
         { reg: '^运势数据|yssj$', fnc: 'getGroupTodayStats' },
