@@ -45,12 +45,13 @@ export class Fortune extends plugin {
       event: 'message',
       priority: 1000,
       rule: [
-        { reg: '^今日运势|jrys|孑然一身$', fnc: 'getFortune' },
-        { reg: '^运势统计|ystj$', fnc: 'getStats' },
-        { reg: '^运势帮助|ysbz$', fnc: 'getHelp' },
-        { reg: '^运势数据|yssj$', fnc: 'getGroupTodayStats' },
-        { reg: '^运势总数据|yszsj$', fnc: 'getAllTodayStats' },
-        { reg: '^运势排行榜|ysphb$', fnc: 'getFortuneRanking' }
+        { reg: '^#(今日运势|jrys|孑然一身)$', fnc: 'getFortune' },
+        { reg: '^#(运势统计|ystj)$', fnc: 'getStats' },
+        { reg: '^#(运势帮助|ysbz)$', fnc: 'getHelp' },
+        { reg: '^#(运势数据|yssj)$', fnc: 'getGroupTodayStats' },
+        { reg: '^#(运势总数据|yszsj)$', fnc: 'getAllTodayStats' },
+        { reg: '^#(运势排行榜|ysphb)$', fnc: 'getFortuneRanking' },
+        { reg: '^#(一言统计|yyts)$', fnc: 'getHitokotoStats' }
       ]
     })
   }
@@ -372,12 +373,13 @@ export class Fortune extends plugin {
   async getHelp() {
     const helpMsg = [
       '【每日运势功能命令帮助】\n',
-      '今日运势 或 jrys —— 获取今日运势\n',
-      '运势统计 或 ystj —— 查看个人统计信息\n',
-      '运势帮助 或 ysbz —— 查看本帮助\n',
-      '#运势数据 或 yssj —— 查询当前群聊今日签到情况\n',
-      '#运势总数据 或 yszsj —— 查询总的今日签到情况（包含历史）\n',
-      '运势排行榜 或 ysphb —— 查看全局运势排行榜\n'
+      '#今日运势 或 #jrys 或 #孑然一身 —— 获取今日运势\n',
+      '#运势统计 或 #ystj —— 查看个人统计信息\n',
+      '#运势帮助 或 #ysbz —— 查看本帮助\n',
+      '#运势数据 或 #yssj —— 查询当前群聊今日签到情况\n',
+      '#运势总数据 或 #yszsj —— 查询总的今日签到情况（仅当日数据）\n',
+      '#运势排行榜 或 #ysphb —— 查看全局运势排行榜\n',
+      '#一言统计 或 #yyts —— 查看备用一言库统计信息\n'
     ]
     await this.reply(helpMsg)
   }
@@ -611,5 +613,31 @@ export class Fortune extends plugin {
 
     await this.reply(forwardMsg)
     return true
+  }
+
+  /**
+   * 获取一言统计信息
+   * @returns {Promise<boolean>} 是否成功
+   */
+  async getHitokotoStats() {
+    try {
+      const backupList = await this.loadHitokotoBackup()
+      const count = backupList.length
+      
+      const statsText = [
+        '📊 一言统计信息\n',
+        '━━━━━━━━━━━━━━━━\n',
+        `📝 备用一言库总数：${count} 条\n`,
+        '━━━━━━━━━━━━━━━━\n',
+        '💡 提示：发送 #今日运势 或 #jrys 进行签到'
+      ].join('')
+      
+      await this.reply(statsText)
+      return true
+    } catch (error) {
+      logMessage('error', '获取一言统计失败:', error.message)
+      await this.reply('❌ 获取一言统计信息失败，请稍后再试')
+      return false
+    }
   }
 } 

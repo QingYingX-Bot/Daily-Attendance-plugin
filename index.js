@@ -3,7 +3,7 @@
  * 每日运势插件 - 提供运势生成、等级系统、随机一言等功能
  * 
  * @author TRSS-Yunzai
- * @version 1.1.0
+ * @version 1.1.1
  * @license MIT 
  */
 

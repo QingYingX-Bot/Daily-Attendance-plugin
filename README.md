@@ -1,6 +1,6 @@
 # 📅 Daily-Attendance-plugin
 
-[![Gitee](https://gitee.com/qingyingxbot/Daily-Attendance-plugin/badge/star.svg?theme=dark)](https://gitee.com/qingyingxbot/Daily-Attendance-plugin) ![version](https://img.shields.io/badge/version-1.1.0-blue) ![license](https://img.shields.io/badge/license-MIT-green)
+[![Gitee](https://gitee.com/qingyingxbot/Daily-Attendance-plugin/badge/star.svg?theme=dark)](https://gitee.com/qingyingxbot/Daily-Attendance-plugin) ![version](https://img.shields.io/badge/version-1.1.1-blue) ![license](https://img.shields.io/badge/license-MIT-green)
 
 ---
 
@@ -43,12 +43,13 @@ pnpm install
 ## 📝 使用说明
 
 ### 基础命令
-- 今日运势 或 jrys —— 获取今日运势
-- 运势统计 或 ystj —— 查看个人统计信息
-- 运势帮助 或 ysbz —— 查看本帮助
-- #运势数据 或 yssj —— 查询当前群聊今日签到情况
-- #运势总数据 或 yszsj —— 查询总的今日签到情况（仅当日数据）
-- 运势排行榜 或 ysphb —— 查看全局运势排行榜
+- `#今日运势` 或 `#jrys` 或 `#孑然一身` —— 获取今日运势
+- `#运势统计` 或 `#ystj` —— 查看个人统计信息
+- `#运势帮助` 或 `#ysbz` —— 查看本帮助
+- `#运势数据` 或 `#yssj` —— 查询当前群聊今日签到情况
+- `#运势总数据` 或 `#yszsj` —— 查询总的今日签到情况（仅当日数据）
+- `#运势排行榜` 或 `#ysphb` —— 查看全局运势排行榜
+- `#一言统计` 或 `#yyts` —— 查看备用一言库统计信息
 
 ---
 
