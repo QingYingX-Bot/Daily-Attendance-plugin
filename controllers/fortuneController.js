@@ -51,7 +51,7 @@ export class Fortune extends plugin {
         { reg: '^#(运势数据|yssj)$', fnc: 'getGroupTodayStats' },
         { reg: '^#(运势总数据|yszsj)$', fnc: 'getAllTodayStats' },
         { reg: '^#(运势排行榜|ysphb)$', fnc: 'getFortuneRanking' },
-        { reg: '^#(一言统计|yyts)$', fnc: 'getHitokotoStats' }
+        { reg: '^#(一言统计|yytj)$', fnc: 'getHitokotoStats' }
       ]
     })
   }
@@ -379,7 +379,7 @@ export class Fortune extends plugin {
       '#运势数据 或 #yssj —— 查询当前群聊今日签到情况\n',
       '#运势总数据 或 #yszsj —— 查询总的今日签到情况（仅当日数据）\n',
       '#运势排行榜 或 #ysphb —— 查看全局运势排行榜\n',
-      '#一言统计 或 #yyts —— 查看备用一言库统计信息\n'
+      '#一言统计 或 #yytj —— 查看备用一言库统计信息\n'
     ]
     await this.reply(helpMsg)
   }
