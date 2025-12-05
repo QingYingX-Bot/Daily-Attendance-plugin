@@ -1,6 +1,6 @@
 import plugin from '../../../lib/plugins/plugin.js'
 import moment from 'moment'
-import { getUserData, saveUserData, saveSignSnapshot, getSignSnapshot, getAllTodaySnapshots, getAllUserData } from '../services/dataManager.js'
+import { getUserData, saveUserData, saveSignSnapshot, getSignSnapshot, getAllTodaySnapshots, getAllUserData, checkAndRestoreExpiredUser, fileExists, getUserDataPath } from '../services/dataManager.js'
 import { generateImage, startAutoCleanup } from '../services/imageService.js'
 import { calculateLevel, getFortuneDescription, getTimeGreeting, getAlmanac, seededRandom, getNextLevelExp, generateNormalFortune } from '../core/utils.js'
 import { readFileSync } from 'node:fs'
@@ -291,8 +291,27 @@ export class Fortune extends plugin {
       return await this.getFortuneView()
     }
     
-    // 检查并恢复过期文件夹中的用户数据
-    const userData = await getUserData(userId)
+    // 检查用户是否有签到数据
+    const userDataPath = getUserDataPath(userId)
+    const hasUserData = await fileExists(userDataPath)
+    
+    let userData
+    if (!hasUserData) {
+      // 用户没有签到数据，检查 expired 文件夹中是否存在
+      const restoredData = await checkAndRestoreExpiredUser(userId)
+      if (restoredData) {
+        // 从 expired 中恢复数据
+        userData = restoredData
+        logMessage('info', `用户 ${userId} 从过期文件夹中恢复数据并签到`)
+      } else {
+        // expired 中也不存在，使用空数据直接签到
+        userData = { exp: 0, signDays: 0, lastSign: null, consecutiveDays: 0 }
+        logMessage('info', `用户 ${userId} 首次签到`)
+      }
+    } else {
+      // 用户已有签到数据，直接获取
+      userData = await getUserData(userId)
+    }
     
     // 生成运势数据
     const fortuneSeed = `${userId}_${date}_fortune`

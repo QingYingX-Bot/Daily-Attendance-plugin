@@ -1,6 +1,6 @@
 # 📅 Daily-Attendance-plugin
 
-[![Gitee](https://gitee.com/qingyingxbot/Daily-Attendance-plugin/badge/star.svg?theme=dark)](https://gitee.com/qingyingxbot/Daily-Attendance-plugin) ![version](https://img.shields.io/badge/version-1.1.1-blue) ![license](https://img.shields.io/badge/license-MIT-green)
+[![Gitee](https://gitee.com/qingyingxbot/Daily-Attendance-plugin/badge/star.svg?theme=dark)](https://gitee.com/qingyingxbot/Daily-Attendance-plugin) ![version](https://img.shields.io/badge/version-1.1.2-blue) ![license](https://img.shields.io/badge/license-MIT-green)
 
 ---
 
