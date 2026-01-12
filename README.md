@@ -1,8 +1,6 @@
+![Daily-Attendance-plugin](https://socialify.git.ci/QingYingX-Bot/Daily-Attendance-plugin/image?description=1&font=Inter&forks=1&issues=1&language=1&name=1&owner=1&pattern=Circuit+Board&pulls=1&stargazers=1&theme=Dark)
+
 # 📅 Daily-Attendance-plugin
-
-[![Gitee](https://gitee.com/qingyingxbot/Daily-Attendance-plugin/badge/star.svg?theme=dark)](https://gitee.com/qingyingxbot/Daily-Attendance-plugin) ![version](https://img.shields.io/badge/version-1.1.2-blue) ![license](https://img.shields.io/badge/license-MIT-green)
-
----
 
 **✨ Yunzai-Bot 每日运势插件，支持运势生成、等级系统、随机一言、搞怪黄历等丰富功能！**
 
@@ -29,13 +27,25 @@ Daily-Attendance-plugin 是一个为 Yunzai-Bot 开发的每日运势插件，�
 ---
 
 ## 🚀 安装方法
-在 Yunzai-Bot 根目录下执行以下命令：
+
+### 1. 克隆仓库
+
+#### Gitee（国内推荐）
 
 ```bash
-# 使用 Git 安装
 git clone https://gitee.com/qingyingxbot/Daily-Attendance-plugin.git ./plugins/Daily-Attendance-plugin/
-# 安装依赖
-pnpm install
+```
+
+#### GitHub
+
+```bash
+git clone https://github.com/QingYingX-Bot/Daily-Attendance-plugin.git ./plugins/Daily-Attendance-plugin/
+```
+
+### 2. 安装依赖
+
+```bash
+pnpm install --filter=Daily-Attendance-plugin
 ```
 
 ---
@@ -166,7 +176,7 @@ Daily-Attendance-plugin/
 ---
 
 ## 💬 问题反馈
-如有任何问题，欢迎提交 [Issue](https://gitee.com/qingyingxbot/Daily-Attendance-plugin/issues) 反馈。
+如有任何问题，欢迎提交 [Issue](https://gitee.com/qingyingxbot/Daily-Attendance-plugin/issues) | [GitHub Issues](https://github.com/QingYingX-Bot/Daily-Attendance-plugin/issues) 反馈。
 
 ## 📄 许可证
 本项目采用 **MIT 许可证**
