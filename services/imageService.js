@@ -1,109 +1,76 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
-
-// 路径常量
-const tempDir = path.resolve(process.cwd(), 'plugins', 'Daily-Attendance-plugin', 'data', 'temp')
-const snapshotDir = path.resolve(process.cwd(), 'plugins', 'Daily-Attendance-plugin', 'data', 'snapshot')
+import { paths } from '../core/path.js'
+import { log } from '../core/logger.js'
 
 /**
  * 清理指定目录中的文件
- * @param {string} dir - 目录路径
- * @param {string} ext - 文件扩展名
- * @param {Function} ensureDirFn - 确保目录存在的函数
- * @returns {Promise<void>}
  */
-async function cleanupDir(dir, ext, ensureDirFn) {
-  await ensureDirFn()
+async function cleanupDir(dir, ext) {
+  try {
+    await fs.access(dir)
+  } catch {
+    await fs.mkdir(dir, { recursive: true })
+  }
+  
   const files = await fs.readdir(dir)
   for (const file of files) {
     if (file.endsWith(ext)) {
       const filePath = path.join(dir, file)
       try {
         await fs.unlink(filePath)
-        if (typeof logger !== 'undefined' && logger.info) {
-          logger.info(`清理文件: ${filePath}`)
-        } else {
-          console.log(`清理文件: ${filePath}`)
-        }
+        log.info(`清理文件: ${filePath}`)
       } catch (err) {
-        if (typeof logger !== 'undefined' && logger.error) {
-          logger.error(`删除文件失败: ${filePath}`, err)
-        } else {
-          console.error(`删除文件失败: ${filePath}`, err)
-        }
+        log.error(`删除文件失败: ${filePath}`, err)
       }
     }
   }
 }
 
 /**
- * 确保临时目录存在
- * @returns {Promise<void>}
- */
-export async function ensureTempDir() {
-  try {
-    await fs.access(tempDir)
-  } catch {
-    await fs.mkdir(tempDir, { recursive: true })
-  }
-}
-
-/**
- * 确保快照目录存在
- * @returns {Promise<void>}
- */
-export async function ensureSnapshotDir() {
-  try {
-    await fs.access(snapshotDir)
-  } catch {
-    await fs.mkdir(snapshotDir, { recursive: true })
-  }
-}
-
-/**
- * 生成运势图片
- * @param {string} html - HTML内容
- * @param {string|number} userId - 用户ID
- * @param {string} date - 日期标识
- * @returns {Promise<string>} 生成的图片路径
+ * 生成图片（返回 base64 格式）
+ * @param {string} html - HTML 内容
+ * @param {string} userId - 用户ID（用于日志）
+ * @param {string} date - 日期（用于日志）
+ * @returns {Promise<string|false>} base64 格式的图片字符串，失败返回 false
  */
 export async function generateImage(html, userId, date) {
-  await ensureTempDir()
   const puppeteer = await import('puppeteer')
-  const browser = await puppeteer.default.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] })
+  const browser = await puppeteer.default.launch({ 
+    headless: true, 
+    args: ['--no-sandbox', '--disable-setuid-sandbox'] 
+  })
+  
   try {
     const page = await browser.newPage()
     await page.setViewport({ width: 600, height: 800 })
     await page.setContent(html, { waitUntil: 'networkidle0' })
-    const imagePath = path.join(tempDir, `${userId}_${date}.png`)
-    await page.screenshot({ path: imagePath, type: 'png', fullPage: true })
+    
+    // 直接获取 base64 格式的图片，不保存文件
+    const base64String = await page.screenshot({ 
+      type: 'png', 
+      fullPage: true,
+      encoding: 'base64'
+    })
+    
     await browser.close()
-    return imagePath
+    
+    if (base64String) {
+      // 返回 base64:// 格式的字符串
+      return `base64://${base64String}`
+    } else {
+      log.error(`[imageService] 图片生成失败: 未获取到 base64 数据`)
+      return false
+    }
   } catch (error) {
     await browser.close()
-    throw error
+    log.error(`[imageService] 生成图片时出错: ${error.message}`, error)
+    return false
   }
 }
 
 /**
- * 清理临时图片文件
- * @returns {Promise<void>}
- */
-export async function cleanupTempImages() {
-  await cleanupDir(tempDir, '.png', ensureTempDir)
-}
-
-/**
- * 清理快照文件
- * @returns {Promise<void>}
- */
-export async function cleanupSnapshots() {
-  await cleanupDir(snapshotDir, '.json', ensureSnapshotDir)
-}
-
-/**
- * 启动自动清理任务
- * @returns {void}
+ * 启动自动清理任务（仅清理快照文件，不再清理图片文件）
  */
 export function startAutoCleanup() {
   const now = new Date()
@@ -113,11 +80,10 @@ export function startAutoCleanup() {
   const msToMidnight = tomorrow.getTime() - now.getTime()
   
   setTimeout(() => {
-    cleanupDir(tempDir, '.png', ensureTempDir)
-    cleanupDir(snapshotDir, '.json', ensureSnapshotDir)
+    // 只清理快照文件，图片不再存储所以不需要清理
+    cleanupDir(paths.snapshot, '.json')
     setInterval(() => {
-      cleanupDir(tempDir, '.png', ensureTempDir)
-      cleanupDir(snapshotDir, '.json', ensureSnapshotDir)
+      cleanupDir(paths.snapshot, '.json')
     }, 24 * 60 * 60 * 1000)
   }, msToMidnight)
 }

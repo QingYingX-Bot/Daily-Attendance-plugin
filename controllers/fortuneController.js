@@ -7,8 +7,10 @@ import { readFileSync } from 'node:fs'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { segment } from 'oicq'
+import { paths } from '../core/path.js'
+import { log } from '../core/logger.js'
 
-const apisConfig = JSON.parse(readFileSync('./plugins/Daily-Attendance-plugin/config/apis.json', 'utf8'))
+const apisConfig = JSON.parse(readFileSync(paths.apis, 'utf8'))
 const HITOKOTO_API = apisConfig.HITOKOTO_API
 const BG_API = apisConfig.BG_API
 
@@ -16,24 +18,11 @@ const BG_API = apisConfig.BG_API
 const EXP_GAIN_BASE = 100
 const EXP_GAIN_MAX = 200
 const CONSECUTIVE_BONUS_RATE = 0.05
-const TEMPLATE_PATH = './plugins/Daily-Attendance-plugin/resources/templates/attendance.html'
-const HITOKOTO_BACKUP_PATH = path.resolve(process.cwd(), 'plugins', 'Daily-Attendance-plugin', 'config', 'hitokotoBackup.json')
 
-/**
- * 统一的日志记录函数
- * @param {string} level - 日志级别 'error' | 'info'
- * @param {...any} args - 日志参数
- */
-function logMessage(level, ...args) {
-  if (typeof logger !== 'undefined' && logger[level]) {
-    logger[level](...args)
-  } else if (Bot?.logger?.[level]) {
-    Bot.logger[level](...args)
-  } else {
-    const method = level === 'error' ? console.error : console.log
-    method(...args)
-  }
-}
+// 特殊日期配置缓存
+let specialDatesCache = null
+let specialDatesCacheTime = 0
+const CACHE_DURATION = 5 * 60 * 1000
 
 startAutoCleanup()
 
@@ -47,11 +36,11 @@ export class Fortune extends plugin {
       rule: [
         { reg: '^#(今日运势|jrys|孑然一身)$', fnc: 'getFortune' },
         { reg: '^#(运势统计|ystj)$', fnc: 'getStats' },
-        { reg: '^#(运势帮助|ysbz)$', fnc: 'getHelp' },
         { reg: '^#(运势数据|yssj)$', fnc: 'getGroupTodayStats' },
         { reg: '^#(运势总数据|yszsj)$', fnc: 'getAllTodayStats' },
         { reg: '^#(运势排行榜|ysphb)$', fnc: 'getFortuneRanking' },
-        { reg: '^#(一言统计|yytj)$', fnc: 'getHitokotoStats' }
+        { reg: '^#(一言统计|yytj)$', fnc: 'getHitokotoStats' },
+        { reg: '^#(运势帮助|ysbz)$', fnc: 'getHelp' }
       ]
     })
   }
@@ -62,14 +51,13 @@ export class Fortune extends plugin {
    */
   async loadHitokotoBackup() {
     try {
-      const data = await fs.readFile(HITOKOTO_BACKUP_PATH, 'utf8')
+      const data = await fs.readFile(paths.hitokotoBackup, 'utf8')
       return JSON.parse(data)
     } catch (error) {
       if (error.code === 'ENOENT') {
-        // 文件不存在，返回空数组
         return []
       }
-      logMessage('error', '读取备用一言库失败:', error.message)
+      log.error('读取备用一言库失败:', error.message)
       return []
     }
   }
@@ -97,10 +85,9 @@ export class Fortune extends plugin {
       // 添加到备用库
       backupList.push({ text, author })
       
-      // 保存到文件
-      await fs.writeFile(HITOKOTO_BACKUP_PATH, JSON.stringify(backupList, null, 2), 'utf8')
+      await fs.writeFile(paths.hitokotoBackup, JSON.stringify(backupList, null, 2), 'utf8')
     } catch (error) {
-      logMessage('error', '保存一言到备用库失败:', error.message)
+      log.error('保存一言到备用库失败:', error.message)
     }
   }
 
@@ -151,9 +138,9 @@ export class Fortune extends plugin {
       return quote
     } catch (error) {
       if (error.name === 'AbortError') {
-        logMessage('error', '获取一言超时')
+        log.error('获取一言超时')
       } else {
-        logMessage('error', '获取一言失败:', error.message)
+        log.error('获取一言失败:', error.message)
       }
       
       // 尝试从备用库中随机选择
@@ -170,14 +157,85 @@ export class Fortune extends plugin {
   }
 
   /**
-   * 生成运势图片
+   * 检查是否为特殊日期
+   * @param {string} dateStr - 日期字符串 (MM-DD 格式)
+   * @returns {Promise<boolean>} 是否为特殊日期
+   */
+  async isSpecialDate(dateStr) {
+    const config = await this.getSpecialDateConfig(dateStr)
+    return config !== null
+  }
+
+  /**
+   * 加载特殊日期配置（带缓存）
+   * @returns {Promise<Array>} 特殊日期配置列表
+   */
+  async loadSpecialDatesConfig() {
+    const now = Date.now()
+    // 如果缓存有效，直接返回
+    if (specialDatesCache && (now - specialDatesCacheTime) < CACHE_DURATION) {
+      return specialDatesCache
+    }
+
+    try {
+      const specialDatesData = await fs.readFile(paths.specialDates, 'utf8')
+      const specialDates = JSON.parse(specialDatesData)
+      specialDatesCache = specialDates
+      specialDatesCacheTime = now
+      return specialDates
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        specialDatesCache = []
+        specialDatesCacheTime = now
+        return []
+      }
+      log.error('读取特殊日期配置失败:', error.message)
+      return []
+    }
+  }
+
+  /**
+   * 获取特殊日期配置
+   * @param {string} dateStr - 日期字符串 (MM-DD 格式)
+   * @returns {Promise<Object|null>} 特殊日期配置，如果不是特殊日期则返回 null
+   */
+  async getSpecialDateConfig(dateStr) {
+    const specialDates = await this.loadSpecialDatesConfig()
+    
+    // 查找匹配的特殊日期配置
+    const config = specialDates.find(item => {
+      // 兼容旧格式（字符串数组）和新格式（对象数组）
+      if (typeof item === 'string') {
+        return item === dateStr
+      }
+      return item.date === dateStr
+    })
+    
+    if (config && typeof config === 'object' && config.date) {
+      // 新格式：返回完整配置
+      return config
+    }
+    
+    return null
+  }
+
+
+  /**
+   * 生成运势图片（base64 格式）
    * @param {Object} snapshotData - 快照数据
    * @param {string} userId - 用户ID
-   * @param {string} date - 日期
-   * @returns {Promise<string>} 图片路径
+   * @param {string} date - 日期 (YYYY-MM-DD 格式)
+   * @returns {Promise<string|false>} base64 格式的图片字符串，失败返回 false
    */
   async generateFortuneImage(snapshotData, userId, date) {
-    const templatePath = path.join(process.cwd(), TEMPLATE_PATH.replace('./', ''))
+    // 检查是否为特殊日期，从 date 参数中提取 MM-DD 格式
+    const dateStr = moment(date, 'YYYY-MM-DD').format('MM-DD')
+    const isSpecial = await this.isSpecialDate(dateStr)
+    
+    const templatePath = isSpecial 
+      ? paths.attendanceSpecialTemplate
+      : paths.attendanceTemplate
+    
     let html = await fs.readFile(templatePath, 'utf8')
     const htmlData = { ...snapshotData, greeting: getTimeGreeting() }
     
@@ -222,22 +280,24 @@ export class Fortune extends plugin {
     return `用户${userId}`
   }
 
+
   /**
    * 计算经验值增益
    * @param {number} fortune - 运势值
    * @param {boolean} isConsecutive - 是否连续签到
+   * @param {number} bonusExp - 额外经验加成
    * @returns {number} 经验值增益
    */
-  calculateExpGain(fortune, isConsecutive) {
+  calculateExpGain(fortune, isConsecutive, bonusExp = 0) {
     let expGain = Math.floor(fortune * 1.0) + EXP_GAIN_BASE
     if (expGain > EXP_GAIN_MAX) expGain = EXP_GAIN_MAX
     
     if (isConsecutive) {
-      const bonusExp = Math.floor(expGain * CONSECUTIVE_BONUS_RATE)
-      expGain += bonusExp
+      const consecutiveBonus = Math.floor(expGain * CONSECUTIVE_BONUS_RATE)
+      expGain += consecutiveBonus
     }
     
-    return expGain
+    return expGain + bonusExp
   }
 
   /**
@@ -291,46 +351,41 @@ export class Fortune extends plugin {
       return await this.getFortuneView()
     }
     
-    // 检查用户是否有签到数据
+    // 初始化用户数据
     const userDataPath = getUserDataPath(userId)
     const hasUserData = await fileExists(userDataPath)
-    
     let userData
     if (!hasUserData) {
-      // 用户没有签到数据，检查 expired 文件夹中是否存在
       const restoredData = await checkAndRestoreExpiredUser(userId)
       if (restoredData) {
-        // 从 expired 中恢复数据
         userData = restoredData
-        logMessage('info', `用户 ${userId} 从过期文件夹中恢复数据并签到`)
+        log.info(`用户 ${userId} 从过期文件夹中恢复数据并签到`)
       } else {
-        // expired 中也不存在，使用空数据直接签到
         userData = { exp: 0, signDays: 0, lastSign: null, consecutiveDays: 0 }
-        logMessage('info', `用户 ${userId} 首次签到`)
+        log.info(`用户 ${userId} 首次签到`)
       }
     } else {
-      // 用户已有签到数据，直接获取
       userData = await getUserData(userId)
     }
     
     // 生成运势数据
-    const fortuneSeed = `${userId}_${date}_fortune`
-    const fortune = generateNormalFortune(fortuneSeed)
+    const dateStr = moment(date, 'YYYY-MM-DD').format('MM-DD')
+    const specialConfig = await this.getSpecialDateConfig(dateStr)
+    const fortune = specialConfig?.fortune !== undefined 
+      ? specialConfig.fortune 
+      : generateNormalFortune(`${userId}_${date}_fortune`)
     const fortuneDesc = getFortuneDescription(fortune)
-    const quote = await this.getRandomQuote()
-    const almanac = getAlmanac(userId, date)
+    const quote = specialConfig?.hitokoto || await this.getRandomQuote()
+    const almanac = specialConfig?.almanac || getAlmanac(userId, date)
+    const expBonus = specialConfig?.expBonus || 0
     
     // 计算经验值增益
     const yesterday = moment().subtract(1, 'day').format('YYYY-MM-DD')
     const isConsecutive = userData.lastSign === yesterday
-    const expGain = this.calculateExpGain(fortune, isConsecutive)
+    const expGain = this.calculateExpGain(fortune, isConsecutive, expBonus)
     
     // 更新用户数据
-    if (isConsecutive) {
-      userData.consecutiveDays += 1
-    } else {
-      userData.consecutiveDays = 1
-    }
+    userData.consecutiveDays = isConsecutive ? userData.consecutiveDays + 1 : 1
     userData.exp += expGain
     userData.signDays += 1
     userData.lastSign = date
@@ -342,10 +397,15 @@ export class Fortune extends plugin {
     await saveSignSnapshot(userId, date, snapshotData)
     await saveUserData(userId, userData)
 
-    // 生成并发送图片
-    const newImagePath = await this.generateFortuneImage(snapshotData, userId, date)
-    await this.reply(segment.image(newImagePath))
-    return true
+    // 生成并发送图片（base64 格式）
+    const imageBase64 = await this.generateFortuneImage(snapshotData, userId, date)
+    if (imageBase64) {
+      await this.reply(segment.image(imageBase64))
+      return true
+    } else {
+      await this.reply('图片生成失败，请稍后再试')
+      return false
+    }
   }
 
   /**
@@ -361,13 +421,22 @@ export class Fortune extends plugin {
       return false
     }
     
-    const quote = await this.getRandomQuote()
+    // 获取一言（特殊日期优先）
+    const dateStr = moment(date, 'YYYY-MM-DD').format('MM-DD')
+    const specialConfig = await this.getSpecialDateConfig(dateStr)
+    const quote = specialConfig?.hitokoto || await this.getRandomQuote()
     snapshotData.hitokoto = quote.text
     snapshotData.hitokotoAuthor = quote.author
     
-    const newImagePath = await this.generateFortuneImage(snapshotData, userId, date)
-    await this.reply(segment.image(newImagePath))
-    return true
+    // 生成并发送图片（base64 格式）
+    const imageBase64 = await this.generateFortuneImage(snapshotData, userId, date)
+    if (imageBase64) {
+      await this.reply(segment.image(imageBase64))
+      return true
+    } else {
+      await this.reply('图片生成失败，请稍后再试')
+      return false
+    }
   }
 
   /**
@@ -386,24 +455,6 @@ export class Fortune extends plugin {
   }
 
   /**
-   * 获取帮助信息
-   * @returns {Promise<void>}
-   */
-  async getHelp() {
-    const helpMsg = [
-      '【每日运势功能命令帮助】\n',
-      '#今日运势 或 #jrys 或 #孑然一身 —— 获取今日运势\n',
-      '#运势统计 或 #ystj —— 查看个人统计信息\n',
-      '#运势帮助 或 #ysbz —— 查看本帮助\n',
-      '#运势数据 或 #yssj —— 查询当前群聊今日签到情况\n',
-      '#运势总数据 或 #yszsj —— 查询总的今日签到情况（仅当日数据）\n',
-      '#运势排行榜 或 #ysphb —— 查看全局运势排行榜\n',
-      '#一言统计 或 #yytj —— 查看备用一言库统计信息\n'
-    ]
-    await this.reply(helpMsg)
-  }
-
-  /**
    * 获取当前群聊今日签到情况
    * @returns {Promise<boolean>} 是否成功
    */
@@ -417,13 +468,12 @@ export class Fortune extends plugin {
     const date = moment().format('YYYY-MM-DD')
     const allSnapshots = await getAllTodaySnapshots(date)
     
-    // 获取当前群聊的成员列表
-    let groupMemberIds = new Set()
+    // 获取当前群聊的成员列表并过滤
+    const groupMemberIds = new Set()
     try {
       if (this.e.group?.getMemberMap) {
         const memberMap = await this.e.group.getMemberMap()
         if (memberMap instanceof Map) {
-          // 提取所有成员的用户ID
           for (const userId of memberMap.keys()) {
             groupMemberIds.add(String(userId))
           }
@@ -439,10 +489,9 @@ export class Fortune extends plugin {
         }
       }
     } catch (error) {
-      logMessage('error', '获取群成员列表失败:', error.message)
+      log.error('获取群成员列表失败:', error.message)
     }
-
-    // 过滤出本群成员的签到快照
+    
     const groupSnapshots = allSnapshots.filter(({ userId }) => 
       groupMemberIds.has(String(userId))
     )
@@ -454,24 +503,22 @@ export class Fortune extends plugin {
     }
 
     // 统计信息（仅本群成员）
-    const totalCount = groupSnapshots.length
-    let avgFortune = 0
+    let totalFortune = 0
     let maxFortune = 0
     let minFortune = 100
-
     for (const { snapshot } of groupSnapshots) {
       const fortune = snapshot.fortune || 0
-      avgFortune += fortune
+      totalFortune += fortune
       if (fortune > maxFortune) maxFortune = fortune
       if (fortune < minFortune) minFortune = fortune
     }
-    avgFortune = Math.round(avgFortune / totalCount)
+    const avgFortune = Math.round(totalFortune / groupSnapshots.length)
 
     const groupName = this.e.group_name || this.e.group?.name || '本群'
     const statsText = [
       `📊 ${groupName} - 今日签到情况\n`,
       `📅 日期：${moment().format('YYYY年MM月DD日')}\n`,
-      `👥 签到人数：${totalCount}人\n`,
+      `👥 签到人数：${groupSnapshots.length}人\n`,
       `📈 平均运势：${avgFortune}分\n`,
       `🔝 最高运势：${maxFortune}分\n`,
       `🔻 最低运势：${minFortune}分\n`,
@@ -495,30 +542,26 @@ export class Fortune extends plugin {
       return true
     }
 
-    // 统计信息（仅统计当日数据）
-    const totalCount = snapshots.length
-    let avgFortune = 0
+    // 统计信息（包含经验统计）
+    let totalFortune = 0
     let maxFortune = 0
     let minFortune = 100
     let totalExpGain = 0
-
     for (const { snapshot } of snapshots) {
       const fortune = snapshot.fortune || 0
-      avgFortune += fortune
+      totalFortune += fortune
       if (fortune > maxFortune) maxFortune = fortune
       if (fortune < minFortune) minFortune = fortune
-      
-      // 只统计当日获得的经验
       totalExpGain += snapshot.expGain || 0
     }
-    avgFortune = Math.round(avgFortune / totalCount)
-    const avgExpGain = Math.round(totalExpGain / totalCount)
+    const avgFortune = Math.round(totalFortune / snapshots.length)
+    const avgExpGain = Math.round(totalExpGain / snapshots.length)
 
     const statsText = [
       `📊 今日总签到数据\n`,
       `📅 日期：${moment().format('YYYY年MM月DD日')}\n`,
       `━━━━━━━━━━━━━━━━\n`,
-      `👥 签到人数：${totalCount}人\n`,
+      `👥 签到人数：${snapshots.length}人\n`,
       `📈 平均运势：${avgFortune}分\n`,
       `🔝 最高运势：${maxFortune}分\n`,
       `🔻 最低运势：${minFortune}分\n`,
@@ -654,9 +697,43 @@ export class Fortune extends plugin {
       await this.reply(statsText)
       return true
     } catch (error) {
-      logMessage('error', '获取一言统计失败:', error.message)
+      log.error('获取一言统计失败:', error.message)
       await this.reply('❌ 获取一言统计信息失败，请稍后再试')
       return false
     }
+  }
+
+  /**
+   * 获取帮助信息
+   */
+  async getHelp(e) {
+    const helpText = `━━━━━
+【每日运势插件帮助】
+━━━━━
+
+【基础功能】
+#今日运势 / #jrys / #孑然一身
+  获取今日运势和签到
+
+#运势统计 / #ystj
+  查看个人统计信息
+
+#运势数据 / #yssj
+  查询当前群聊今日签到情况
+
+#运势总数据 / #yszsj
+  查询总的今日签到情况（仅当日数据）
+
+#运势排行榜 / #ysphb
+  查看全局运势排行榜
+
+#运势帮助 / #ysbz
+  查看本帮助
+
+#一言统计 / #yytj
+  查看备用一言库统计信息`
+
+    await this.reply(helpText)
+    return true
   }
 } 
