@@ -1,5 +1,9 @@
 # 更新日志
 
+## [1.2.1] - 2026/01/15
+
+- 修复更新统一命令提示 [issues](https://github.com/QingYingX-Bot/Daily-Attendance-plugin/issues/1)
+
 ## [1.2.0] - 2026/01/15
 
 - **重大优化**：图片发送方式改进

@@ -34,13 +34,13 @@ export class Fortune extends plugin {
       event: 'message',
       priority: 1000,
       rule: [
-        { reg: '^#(今日运势|jrys|孑然一身)$', fnc: 'getFortune' },
-        { reg: '^#(运势统计|ystj)$', fnc: 'getStats' },
-        { reg: '^#(运势数据|yssj)$', fnc: 'getGroupTodayStats' },
-        { reg: '^#(运势总数据|yszsj)$', fnc: 'getAllTodayStats' },
-        { reg: '^#(运势排行榜|ysphb)$', fnc: 'getFortuneRanking' },
-        { reg: '^#(一言统计|yytj)$', fnc: 'getHitokotoStats' },
-        { reg: '^#(运势帮助|ysbz)$', fnc: 'getHelp' }
+        { reg: '^#?(今日运势|jrys|孑然一身)$', fnc: 'getFortune' },
+        { reg: '^#?(运势统计|ystj)$', fnc: 'getStats' },
+        { reg: '^#?(运势数据|yssj)$', fnc: 'getGroupTodayStats' },
+        { reg: '^#?(运势总数据|yszsj)$', fnc: 'getAllTodayStats' },
+        { reg: '^#?(运势排行榜|ysphb)$', fnc: 'getFortuneRanking' },
+        { reg: '^#?(一言统计|yytj)$', fnc: 'getHitokotoStats' },
+        { reg: '^#?(运势帮助|ysbz)$', fnc: 'getHelp' }
       ]
     })
   }
