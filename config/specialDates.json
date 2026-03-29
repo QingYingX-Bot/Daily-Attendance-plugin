@@ -2,7 +2,7 @@
   {
     "date": "01-01",
     "fortune": 100,
-    "expBonus": 888,
+    "expBonus": 101,
     "almanac": {
       "good": "新的一年万事顺遂！",
       "bad": "不会有坏事发生的！"
@@ -10,6 +10,136 @@
     "hitokoto": {
       "text": "爆竹除旧岁，好运滚滚来",
       "author": "米糕"
+    }
+  },
+  {
+    "date": "03-08",
+    "fortune": 100,
+    "expBonus": 308,
+    "almanac": {
+      "good": "三八妇女节，宜关爱女性，祝福安康",
+      "bad": "忌失礼怠慢，出言不逊"
+    },
+    "hitokoto": {
+      "text": "蕙质兰心，芳华自在，笑靥如花",
+      "author": "佚名"
+    }
+  },
+  {
+    "date": "03-12",
+    "fortune": 100,
+    "expBonus": 312,
+    "almanac": {
+      "good": "植树节，宜植树护绿，美化环境",
+      "bad": "忌破坏草木，浪费资源"
+    },
+    "hitokoto": {
+      "text": "十年树木，百年树人，种下希望",
+      "author": "管仲"
+    }
+  },
+  {
+    "date": "05-01",
+    "fortune": 100,
+    "expBonus": 501,
+    "almanac": {
+      "good": "劳动节，宜勤劳奋进，收获光荣",
+      "bad": "忌好逸恶劳，虚度光阴"
+    },
+    "hitokoto": {
+      "text": "劳动创造世界，奋斗成就梦想",
+      "author": "佚名"
+    }
+  },
+  {
+    "date": "05-04",
+    "fortune": 100,
+    "expBonus": 504,
+    "almanac": {
+      "good": "青年节，宜意气风发，追逐理想",
+      "bad": "忌消极颓废，辜负韶华"
+    },
+    "hitokoto": {
+      "text": "以青春之我，创青春之国",
+      "author": "李大钊"
+    }
+  },
+  {
+    "date": "05-12",
+    "fortune": 100,
+    "expBonus": 512,
+    "almanac": {
+      "good": "护士节，宜感恩奉献，致敬白衣天使",
+      "bad": "忌冷漠无情，不懂感恩"
+    },
+    "hitokoto": {
+      "text": "白衣执甲，逆行出征，护佑安康",
+      "author": "佚名"
+    }
+  },
+  {
+    "date": "06-01",
+    "fortune": 100,
+    "expBonus": 601,
+    "almanac": {
+      "good": "儿童节，宜童心未泯，快乐无忧",
+      "bad": "忌压抑天性，愁眉不展"
+    },
+    "hitokoto": {
+      "text": "保持童真，永远好奇，一生热爱",
+      "author": "佚名"
+    }
+  },
+  {
+    "date": "07-01",
+    "fortune": 100,
+    "expBonus": 701,
+    "almanac": {
+      "good": "建党节，宜不忘初心，牢记使命",
+      "bad": "忌忘本负义，行差踏错"
+    },
+    "hitokoto": {
+      "text": "百年征程波澜壮阔，百年初心历久弥坚",
+      "author": "佚名"
+    }
+  },
+  {
+    "date": "08-01",
+    "fortune": 100,
+    "expBonus": 801,
+    "almanac": {
+      "good": "建军节，致敬军人，保家卫国",
+      "bad": "忌漠视国防，不知安危"
+    },
+    "hitokoto": {
+      "text": "铁血铸军魂，丹心照汗青",
+      "author": "佚名"
+    }
+  },
+  {
+    "date": "09-10",
+    "fortune": 100,
+    "expBonus": 910,
+    "almanac": {
+      "good": "教师节，宜尊师重道，感恩教诲",
+      "bad": "忌轻师慢老，忘恩负义"
+    },
+    "hitokoto": {
+      "text": "春蚕到死丝方尽，蜡炬成灰泪始干",
+      "author": "李商隐"
+    }
+  },
+  {
+    "date": "10-01",
+    "fortune": 100,
+    "expBonus": 1001,
+    "almanac": {
+      "good": "国庆节，普天同庆，祝愿国泰民安",
+      "bad": "忌违法乱纪，有损国格"
+    },
+    "hitokoto": {
+      "text": "此生无悔入华夏，来世还做中国人",
+      "author": "佚名"
     }
   }
 ]
