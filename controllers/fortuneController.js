@@ -1,12 +1,11 @@
 import plugin from '../../../lib/plugins/plugin.js'
 import moment from 'moment'
 import { getUserData, saveUserData, saveSignSnapshot, getSignSnapshot, getAllTodaySnapshots, getAllUserData, checkAndRestoreExpiredUser, fileExists, getUserDataPath } from '../services/dataManager.js'
-import { generateImage, startAutoCleanup } from '../services/imageService.js'
+import { startSnapshotCleanup } from '../services/snapshotCleanup.js'
 import { calculateLevel, getFortuneDescription, getTimeGreeting, getAlmanac, seededRandom, getNextLevelExp, generateNormalFortune } from '../core/utils.js'
 import { readFileSync } from 'node:fs'
 import fs from 'node:fs/promises'
 import path from 'node:path'
-import { segment } from 'oicq'
 import { paths } from '../core/path.js'
 import { log } from '../core/logger.js'
 
@@ -24,7 +23,7 @@ let specialDatesCache = null
 let specialDatesCacheTime = 0
 const CACHE_DURATION = 5 * 60 * 1000
 
-startAutoCleanup()
+startSnapshotCleanup()
 
 export class Fortune extends plugin {
   constructor() {
@@ -221,30 +220,24 @@ export class Fortune extends plugin {
 
 
   /**
-   * 生成运势图片（base64 格式）
+   * 使用 Yunzai 标准渲染器生成运势图片
    * @param {Object} snapshotData - 快照数据
    * @param {string} userId - 用户ID
    * @param {string} date - 日期 (YYYY-MM-DD 格式)
-   * @returns {Promise<string|false>} base64 格式的图片字符串，失败返回 false
+   * @returns {Promise<Object|false>} 图片消息段，失败返回 false
    */
-  async generateFortuneImage(snapshotData, userId, date) {
-    // 检查是否为特殊日期，从 date 参数中提取 MM-DD 格式
+  async renderFortune(snapshotData, userId, date) {
     const dateStr = moment(date, 'YYYY-MM-DD').format('MM-DD')
-    const isSpecial = await this.isSpecialDate(dateStr)
-    
-    const templatePath = isSpecial 
-      ? paths.attendanceSpecialTemplate
-      : paths.attendanceTemplate
-    
-    let html = await fs.readFile(templatePath, 'utf8')
-    const htmlData = { ...snapshotData, greeting: getTimeGreeting() }
-    
-    for (const [k, v] of Object.entries(htmlData)) {
-      html = html.replace(new RegExp(`{{${k}}}`, 'g'), v)
-    }
-    
-    const { generateImage } = await import('../services/imageService.js')
-    return await generateImage(html, userId, date + '_' + Date.now())
+    const template = await this.isSpecialDate(dateStr)
+      ? 'templates/attendance_special'
+      : 'templates/attendance'
+
+    return this.e.runtime.render('Daily-Attendance-plugin', template, {
+      ...snapshotData,
+      greeting: getTimeGreeting(),
+      saveId: `${userId}_${date}`,
+      pageGotoParams: { waitUntil: 'networkidle0', timeout: 30000 }
+    }, { retType: 'base64' })
   }
 
   /**
@@ -397,10 +390,9 @@ export class Fortune extends plugin {
     await saveSignSnapshot(userId, date, snapshotData)
     await saveUserData(userId, userData)
 
-    // 生成并发送图片（base64 格式）
-    const imageBase64 = await this.generateFortuneImage(snapshotData, userId, date)
-    if (imageBase64) {
-      await this.reply(segment.image(imageBase64))
+    const image = await this.renderFortune(snapshotData, userId, date)
+    if (image) {
+      await this.reply(image)
       return true
     } else {
       await this.reply('图片生成失败，请稍后再试')
@@ -428,10 +420,9 @@ export class Fortune extends plugin {
     snapshotData.hitokoto = quote.text
     snapshotData.hitokotoAuthor = quote.author
     
-    // 生成并发送图片（base64 格式）
-    const imageBase64 = await this.generateFortuneImage(snapshotData, userId, date)
-    if (imageBase64) {
-      await this.reply(segment.image(imageBase64))
+    const image = await this.renderFortune(snapshotData, userId, date)
+    if (image) {
+      await this.reply(image)
       return true
     } else {
       await this.reply('图片生成失败，请稍后再试')
@@ -736,4 +727,4 @@ export class Fortune extends plugin {
     await this.reply(helpText)
     return true
   }
-} 
+}

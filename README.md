@@ -122,7 +122,7 @@ Daily-Attendance-plugin/
 │   └── fortuneController.js # 运势控制器
 ├── services/              # 服务层模块
 │   ├── dataManager.js     # 数据管理服务
-│   └── imageService.js    # 图片生成服务
+│   └── snapshotCleanup.js # 快照清理服务
 ├── core/                  # 核心功能模块
 │   ├── utils.js           # 工具函数
 │   ├── logger.js          # 日志工具
@@ -167,7 +167,8 @@ Daily-Attendance-plugin/
 ### 主要模块
 - `fortuneController.js` - 插件主控制器，负责指令注册与主流程调度
 - `dataManager.js` - 用户数据管理，负责读写用户签到数据
-- `imageService.js` - 图片生成服务
+- `snapshotCleanup.js` - 每日快照清理服务
+- 运势图片通过 Yunzai 标准渲染器生成
 - `utils.js` - 等级、运势、问候语等业务纯函数
 - `logger.js` - 统一日志工具
 - `path.js` - 路径管理工具
@@ -186,4 +187,4 @@ Daily-Attendance-plugin/
 
 ---
 
-**免责声明**：本插件仅供娱乐使用，运势内容为随机生成，请勿迷信。 
+**免责声明**：本插件仅供娱乐使用，运势内容为随机生成，请勿迷信。

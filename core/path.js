@@ -18,16 +18,8 @@ export const paths = {
   userSigns: path.join(pluginRoot, 'data', 'user_signs'),
   expired: path.join(pluginRoot, 'data', 'expired'),
   
-  // 资源目录
-  resources: path.join(pluginRoot, 'resources'),
-  templates: path.join(pluginRoot, 'resources', 'templates'),
-  
   // 配置文件
   hitokotoBackup: path.join(pluginRoot, 'config', 'hitokotoBackup.json'),
   specialDates: path.join(pluginRoot, 'config', 'specialDates.json'),
-  apis: path.join(pluginRoot, 'config', 'apis.json'),
-  
-  // 模板文件
-  attendanceTemplate: path.join(pluginRoot, 'resources', 'templates', 'attendance.html'),
-  attendanceSpecialTemplate: path.join(pluginRoot, 'resources', 'templates', 'attendance_special.html')
+  apis: path.join(pluginRoot, 'config', 'apis.json')
 }
